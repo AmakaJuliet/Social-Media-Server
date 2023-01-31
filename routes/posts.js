@@ -93,7 +93,7 @@ router.put("/:id/view", async (req,res)=> {
         await post.updateOne({ $push: { views:req.body.userId } });
         res.status(200).json("The post has been viewed")
     }else {
-        await post.updateOne({ $pull: { likes:req.body.userId} });
+        await post.updateOne({ $pull: { views:req.body.userId} });
         res.status(200).json("The post has been unviewed");
     }
   } catch(err){
