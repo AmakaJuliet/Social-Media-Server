@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userSchema");
+const { promisify } = require("util");
 
+const roles = ["admin", "lead-guide"];
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -82,29 +84,39 @@ exports.protect = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
   }
   // check if token is valid
   if (!token) {
-    return next(
-      new AppError("You are not Logged in, Please Login to view this page", 401)
-    );
+    return res.status(401).json({
+      success: false,
+      message: "You are not Logged in, Please Login to view this page",
+    });
   }
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   //check if user still exists
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
-    return next(new AppError("Unauthorised User, Please Login Again!", 401));
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorised User, Please Login Again!",
+    });
   }
-  // check if password changed
-  if (currentUser.changePasswordAfter(decoded.iat)) {
-    return next(
-      new AppError("User recently changed Password, Please Login Again!", 401)
-    );
-  }
+
   //grant access to route
   req.user = currentUser;
   res.locals.user = currentUser;
   next();
 };
+
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    //roles is an array of ['admin', 'lead-guide']
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permissions to perform this action",
+      });
+    }
+    next();
+  };
