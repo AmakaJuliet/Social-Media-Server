@@ -5,14 +5,23 @@ const authController = require("../controllers/authController");
 const router = express.Router();
 
 //update user
-router.put("/:id", userController.updateAccount);
+router.put("/:id", authController.protect, userController.updateAccount);
 //delete user
-router.delete("/:id", userController.deleteAccount);
+router.delete(
+  "/:id",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.deleteAccount
+);
 //get a user
-router.get("/:id", userController.getUser);
+router.get("/:id", authController.protect, userController.getUser);
 //follow user
-router.put("/:id/follow", userController.followUser);
+router.put("/:id/follow", authController.protect, userController.followUser);
 //unfollow user
-router.put("/:id/unfollow", userController.unfollowUser);
+router.put(
+  "/:id/unfollow",
+  authController.protect,
+  userController.unfollowUser
+);
 
 module.exports = router;
