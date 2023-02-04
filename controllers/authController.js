@@ -114,7 +114,7 @@ exports.protect = async (req, res, next) => {
   if (!currentUser) {
     return res.status(401).json({
       success: false,
-      message: "Unauthorised User, Please Login Again!",
+      message: "Unauthorized User, Please Login Again!",
     });
   }
 
