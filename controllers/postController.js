@@ -67,9 +67,16 @@ exports.getTimelinePost = async (req, res) => {
         return Post.find({ userId: friendId });
       })
     );
-    res.json(userPosts.concat(...friendPosts));
+    const allPosts = userPosts.concat(...friendPosts);
+    res.status(200).json({
+      success: true,
+      message: `${allPosts.length} Posts retrieved successfully`,
+      data: allPosts,
+    });
   } catch (err) {
-    res.status(500).json(err);
+    res
+      .status(400)
+      .json({ success: false, message: "There was an error", error: err });
   }
 };
 
@@ -87,13 +94,11 @@ exports.updatePost = async (req, res) => {
         .json({ success: false, message: "you can update only your post" });
     }
   } catch (err) {
-    res
-      .status(400)
-      .json({
-        success: false,
-        message: "There was an error",
-        error: err.message,
-      });
+    res.status(400).json({
+      success: false,
+      message: "There was an error",
+      error: err.message,
+    });
   }
 };
 

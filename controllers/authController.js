@@ -85,6 +85,7 @@ exports.protect = async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(" ")[1];
   }
+
   // check if token is valid
   if (!token) {
     return res.status(401).json({
@@ -92,7 +93,22 @@ exports.protect = async (req, res, next) => {
       message: "You are not Logged in, Please Login to view this page",
     });
   }
+  const isTokenExpired = (token) =>
+    Date.now() >= JSON.parse(atob(token.split(".")[1])).exp * 1000;
+  if (isTokenExpired(token)) {
+    return res.status(401).json({
+      success: false,
+      message: "Token Expired, Please Login again",
+    });
+  }
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  console.log(decoded);
+  if (!decoded) {
+    return res.status(401).json({
+      success: false,
+      message: "You are not Logged in, Please Login to view this page",
+    });
+  }
   //check if user still exists
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
@@ -111,7 +127,7 @@ exports.protect = async (req, res, next) => {
 exports.restrictTo =
   (...roles) =>
   (req, res, next) => {
-    //roles is an array of ['admin', 'lead-guide']
+    //roles is an array of ['admin', 'supervisor']
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
