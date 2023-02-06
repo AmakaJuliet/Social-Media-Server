@@ -11,13 +11,14 @@ const postRoute = require("./routes/postsRoute");
 dotenv.config();
 
 mongoose.set("strictQuery", true);
-mongoose.connect(
-  process.env.MONGO_URL,
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  () => {
-    console.log("Connected to MongoDB");
-  }
-);
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log("database connection successful");
+  })
+  .catch((err) => {
+    console.log("database connection error " + err);
+  });
 
 //middleware
 app.use(express.json());
